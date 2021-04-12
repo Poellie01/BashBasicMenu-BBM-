@@ -1,5 +1,6 @@
  #!/bin/bash
 
+#First option in the menu. check for updates with yum
 menu_option_one() {
         echo "Checking with yum for updates"
         yumtmp="/tmp/yum-check-update.$$"
@@ -24,6 +25,7 @@ menu_option_one() {
         esac
         rm -f /tmp/yum-check-update.*
 }
+#Display some basic information, select what type 
 menu_option_two() {
         echo "Host machine INFO"
         echo ""
@@ -41,10 +43,11 @@ menu_option_two() {
         *) clear ; incorrect_selection ; press_enter ;;
         esac
 }
+#Displays Host / Kernel / IP and Disks information
 menu_option_two_basic() {
         hostname=$(/bin/hostname)
         date=$(date)
-        echo "Basic Host /  Kernel / IP information "
+        echo "Basic Host /  Kernel / IP / Disks information "
         echo ""
         uname -a
         echo ""
@@ -68,6 +71,7 @@ menu_option_two_basic() {
         *) incorrect_selection ; press_enter ;;
         esac
 }
+#Run lshw and get the option to save to file
 menu_option_two_full() {
         echo "Full list information"
         lshw
@@ -84,6 +88,7 @@ menu_option_two_full() {
         *) incorrect_selection ; press_enter ;;
         esac
 }
+#Basic CPU information
 menu_option_three() {
         echo "CPU information"
         echo ""
@@ -102,10 +107,12 @@ menu_option_three() {
         *) incorrect_selection ; press_enter ;;
         esac
 }
+#Check currently logged in users
 menu_option_three() {
 	echo "Currently logged in users:" 
 	w
 }
+#Function for menu option 1, save output to file, basically runs the command again and saves the output 
 basic_output_to_file() {
         uname -a | ifconfig | lsblk >> /tmp/BasicInfo.txt &> /dev/null
         echo "Saved as /tmp/BasicInfo.txt"
@@ -118,15 +125,18 @@ cpu_save_output_to_file() {
         lscpu >> /tmp/CPUInfo.txt
         echo "Saved as /tmp/CPUInfo.txt"
 }
+#Press enter menu for when done with other menus
 press_enter() {
         echo ""
         echo -n "       Press Enter to continue "
         read
         clear
 }
+#When there isnt an y/n answer
 incorrect_selection() {
         echo "Incorrect selection! Try again. "
 }
+# Begin menu of the script
 until ["$selection" = "0" ]; do
         clear
         date=$(date)
