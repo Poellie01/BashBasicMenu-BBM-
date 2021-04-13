@@ -1,4 +1,4 @@
-
+#!/bin/bash
 }
 menu_option_six() {
         echo""
