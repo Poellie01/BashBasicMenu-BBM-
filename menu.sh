@@ -1,6 +1,5 @@
- #!/bin/bash
+#!/bin/bash
 
-#First option in the menu. check for updates with yum
 menu_option_one() {
         echo "Checking with yum for updates"
         yumtmp="/tmp/yum-check-update.$$"
@@ -25,13 +24,13 @@ menu_option_one() {
         esac
         rm -f /tmp/yum-check-update.*
 }
-#Display some basic information, select what type 
 menu_option_two() {
         echo "Host machine INFO"
         echo ""
         echo "          1 - Display Basic information"
         echo "          2 - Display Full information"
         echo "          3 - Display CPU information"
+        echo "          4 - Display GPU information"
         echo ""
         echo -n "Enter Selection: "
         read selection
@@ -39,21 +38,26 @@ menu_option_two() {
         case $selection in
         1) clear ; menu_option_two_basic ;;
         2) clear ; menu_option_two_full ;;
-        3) clear ; menu_option_three ;;
+        3) clear ; menu_option_two_cpu ;;
+        4) clear ; menu_option_two_gpu ;;
         *) clear ; incorrect_selection ; press_enter ;;
         esac
 }
-#Displays Host / Kernel / IP and Disks information
 menu_option_two_basic() {
         hostname=$(/bin/hostname)
         date=$(date)
-        echo "Basic Host /  Kernel / IP / Disks information "
+        echo "Basic Host /  Kernel / IP / Disk information "
         echo ""
         uname -a
         echo ""
         echo "Current TCP/IP configuration: "
         echo ""
-        ifconfig
+        if ! command -v ifconfig &> /dev/null
+        then
+                ip link show
+        else
+                ifconfig
+        fi
         echo ""
         echo "Hard disks"
         echo ""
@@ -71,7 +75,6 @@ menu_option_two_basic() {
         *) incorrect_selection ; press_enter ;;
         esac
 }
-#Run lshw and get the option to save to file
 menu_option_two_full() {
         echo "Full list information"
         lshw
@@ -88,8 +91,7 @@ menu_option_two_full() {
         *) incorrect_selection ; press_enter ;;
         esac
 }
-#Basic CPU information
-menu_option_three() {
+menu_option_two_cpu() {
         echo "CPU information"
         echo ""
         lscpu
@@ -107,14 +109,62 @@ menu_option_three() {
         *) incorrect_selection ; press_enter ;;
         esac
 }
-#Check currently logged in users
-menu_option_three() {
-	echo "Currently logged in users:" 
-	w
+menu_option_two_gpu() {
+        echo ""
+        echo "Basic GPU information"
+        echo ""
+        lshw -C display
+        echo ""
+        echo "          1. Save output to file"
+        echo "          2. Return to main menu"
+        echo ""
+        echo "Select action: "
+        read action
+        echo ""
+        case $action in
+        1) gpu_save_output_to_file ;;
+        2) clear ;;
+        *) incorrect_selection ;;
+        esac
 }
-#Function for menu option 1, save output to file, basically runs the command again and saves the output 
+menu_option_three() {
+        echo "Logged in users:"
+        echo ""
+        w
+        echo ""
+        echo "          1. List all users"
+        echo "          2. Return to main menu"
+        echo ""
+        echo "Select action: "
+        read action
+        case $action in
+        1) list_all_users ;;
+        2) clear ;;
+        *) incorrect_selection ;;
+        esac
+}
+menu_option_four() {
+        echo ""
+        echo "Network stats"
+        echo ""
+        netstat -i
+}
+menu_option_five() {
+        echo "Press CTLR + C to get back to the main menu"
+        top
+
+}
+menu_option_six() {
+        echo""
+        history
+}
+list_all_users() {
+        echo ""
+        awk -F: '{ print $1}' /etc/passwd
+        echo ""
+}
 basic_output_to_file() {
-        uname -a | ifconfig | lsblk >> /tmp/BasicInfo.txt &> /dev/null
+        uname -a && ifconfig && lsblk >> /tmp/BasicInfo.txt &> /dev/null
         echo "Saved as /tmp/BasicInfo.txt"
 }
 full_save_output_to_file() {
@@ -125,33 +175,41 @@ cpu_save_output_to_file() {
         lscpu >> /tmp/CPUInfo.txt
         echo "Saved as /tmp/CPUInfo.txt"
 }
-#Press enter menu for when done with other menus
+gpu_save_output_to_file() {
+        lshw -C display >> /tmp/GPUInfo.txt
+        echo "Saved as /tmp/GPUInfo.txt"
+}
 press_enter() {
         echo ""
         echo -n "       Press Enter to continue "
         read
         clear
 }
-#When there isnt an y/n answer
 incorrect_selection() {
         echo "Incorrect selection! Try again. "
 }
-# Begin menu of the script
 until ["$selection" = "0" ]; do
         clear
         date=$(date)
         if ! command -v figlet &> /dev/null
         then
-                echo "$date"
+                COLUMNS=$(tput cols)
+                title=$(date)
+                banner="Banner"
+                printf "%*s\n" $(((${#banner}+$COLUMNS)/2)) "$banner"
+                printf "%*s\n" $(((${#title}+$COLUMNS)/2)) "$title"
         else
-                echo "$date" | figlet -cktf small
-                echo "Gemeente Haarlem - RedHat" | figlet -ctk
+                echo "Banner" | figlet -ctk
+                COLUMNS=$(tput cols)
+                title=$(date)
+                printf "%*s\n" $(((${#title}+$COLUMNS)/2)) "$title"
         fi
         echo ""
-        echo "          1 - Check for updates with yum"
-        echo "          2 - Host Information"
-        echo "		3 - Check currently logged in users"
-	echo "          0 - Exit"
+        echo "          1 - Check for updates with yum                          5- List current running processes"
+        echo "          2 - Host Information                                    6- Command history"
+        echo "          3 - Check currently logged in users                     7- Test "
+        echo "          4 - Network stats                                       8- Test "
+        echo "          0 - Exit                                                9- Test "
         echo ""
         echo -n "Enter Selection: "
         read selection
@@ -159,10 +217,15 @@ until ["$selection" = "0" ]; do
         case $selection in
         1) clear ; menu_option_one ; press_enter ;;
         2) clear ; menu_option_two ; press_enter ;;
-	3) clear ; menu_option_three ; press_enter ;;
+        3) clear ; menu_option_three ; press_enter ;;
+        4) clear ; menu_option_four ; press_enter ;;
+        5) clear ; menu_option_five ; press_enter ;;
+        6) clear ; menu_option_six ; press_enter ;;
         0) clear ; exit ;;
         *) clear ; incorrect_selection ; press_enter ;;
         esac
 done
+
+
 
 
